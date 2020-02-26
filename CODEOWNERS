@@ -247,6 +247,7 @@ homeassistant/components/nuki/* @pvizeli
 homeassistant/components/nws/* @MatthewFlamm
 homeassistant/components/nzbget/* @chriscla
 homeassistant/components/obihai/* @dshokouhi
+homeassistant/components/ohm_made/* @ereOn
 homeassistant/components/ohmconnect/* @robbiet480
 homeassistant/components/ombi/* @larssont
 homeassistant/components/onboarding/* @home-assistant/core

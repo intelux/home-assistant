@@ -1,0 +1,14 @@
+{
+  "domain": "ohm_made",
+  "name": "Ohm-made",
+  "config_flow": true,
+  "documentation": "https://www.home-assistant.io/integrations/ohm_made",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": [],
+  "homekit": {},
+  "dependencies": [],
+  "codeowners": [
+    "@ereOn"
+  ]
+}

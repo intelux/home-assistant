@@ -68,6 +68,7 @@ FLOWS = [
     "nest",
     "netatmo",
     "notion",
+    "ohm_made",
     "opentherm_gw",
     "openuv",
     "owntracks",

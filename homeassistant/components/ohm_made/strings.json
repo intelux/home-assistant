@@ -1,0 +1,22 @@
+{
+  "config": {
+    "title": "Ohm-made",
+    "step": {
+      "user": {
+        "title": "Connect to the device",
+        "data": {
+          "host": "<hostname>[:<port>]",
+          "token": "Secret token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect, please try again",
+      "invalid_auth": "Invalid authentication",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  }
+}
