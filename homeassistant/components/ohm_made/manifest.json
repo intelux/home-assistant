@@ -3,9 +3,13 @@
   "name": "Ohm-made",
   "config_flow": true,
   "documentation": "https://www.home-assistant.io/integrations/ohm_made",
-  "requirements": [],
+  "requirements": [
+    "ohm-made>=0.0.3"
+  ],
   "ssdp": [],
-  "zeroconf": [],
+  "zeroconf": [
+    "_ohm-led._tcp.local."
+  ],
   "homekit": {},
   "dependencies": [],
   "codeowners": [

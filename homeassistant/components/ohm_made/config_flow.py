@@ -1,6 +1,7 @@
 """Config flow for Ohm-made integration."""
 import logging
 
+from ohm_led.led_stripe import LEDStripe
 import voluptuous as vol
 
 from homeassistant import config_entries, core, exceptions
@@ -9,22 +10,7 @@ from .const import DOMAIN  # pylint:disable=unused-import
 
 _LOGGER = logging.getLogger(__name__)
 
-DATA_SCHEMA = vol.Schema({"host": str, "token": str})
-
-
-class PlaceholderHub:
-    """Placeholder class to make tests pass.
-
-    TODO Remove this placeholder class and replace with things from your PyPI package.
-    """
-
-    def __init__(self, host):
-        """Initialize."""
-        self.host = host
-
-    async def authenticate(self, token) -> bool:
-        """Test if we can authenticate with the host."""
-        return True
+DATA_SCHEMA = vol.Schema({"url": str})
 
 
 async def validate_input(hass: core.HomeAssistant, data):
@@ -32,28 +18,16 @@ async def validate_input(hass: core.HomeAssistant, data):
 
     Data has the keys from DATA_SCHEMA with values provided by the user.
     """
-    # TODO validate the data can be used to set up a connection.
+    url = data["url"]
+    led_stripe = LEDStripe(url)
 
-    # If your PyPI package is not built with async, pass your methods
-    # to the executor:
-    # await hass.async_add_executor_job(
-    #     your_validate_func, data["username"], data["password"]
-    # )
-
-    host = data["host"]
-    token = data["token"]
-    hub = PlaceholderHub(host)
-
-    if not await hub.authenticate(token):
-        raise InvalidAuth
-
-    # If you cannot connect:
-    # throw CannotConnect
-    # If the authentication is wrong:
-    # InvalidAuth
+    try:
+        await led_stripe.get_state()
+    except Exception:  # pylint: disable=broad-except
+        raise CannotConnect
 
     # Return info that you want to store in the config entry.
-    return {"title": f"Ohm-made device at {host}"}
+    return {"title": f"Ohm-made device at {url}"}
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -69,6 +43,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # self._abort_if_unique_id_configured()
 
         errors = {}
+
         if user_input is not None:
             try:
                 info = await validate_input(self.hass, user_input)
@@ -76,8 +51,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(title=info["title"], data=user_input)
             except CannotConnect:
                 errors["base"] = "cannot_connect"
-            except InvalidAuth:
-                errors["base"] = "invalid_auth"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
@@ -89,7 +62,3 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 class CannotConnect(exceptions.HomeAssistantError):
     """Error to indicate we cannot connect."""
-
-
-class InvalidAuth(exceptions.HomeAssistantError):
-    """Error to indicate there is invalid auth."""

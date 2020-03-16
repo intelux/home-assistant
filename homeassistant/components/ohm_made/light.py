@@ -1,57 +1,64 @@
 """Platform for light integration."""
 import logging
 
+from ohm_led import Device
 import voluptuous as vol
 
-# Import the device class from the component that you want to support
-from homeassistant.components.light import ATTR_BRIGHTNESS, PLATFORM_SCHEMA, Light
-from homeassistant.const import CONF_HOST, CONF_TOKEN
+from homeassistant.components.light import (
+    ATTR_BRIGHTNESS,
+    ATTR_HS_COLOR,
+    PLATFORM_SCHEMA,
+    SUPPORT_BRIGHTNESS,
+    SUPPORT_COLOR,
+    Light,
+)
+from homeassistant.const import CONF_URL
 import homeassistant.helpers.config_validation as cv
+
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-# Validation of the user's configuration
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
-    {vol.Required(CONF_HOST): cv.string, vol.Optional(CONF_TOKEN): cv.string}
-)
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({vol.Required(CONF_URL): cv.string})
 
 
-def setup_platform(hass, config, add_entities, discovery_info=None):
+async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the Awesome Light platform."""
-    # Assign configuration variables.
-    # The configuration check takes care they are present.
-    # host = config[CONF_HOST]
-    # token = config.get(CONF_TOKEN)
-
-    # Setup connection with devices/cloud
-
-    # Verify that passed in configuration works
-    if not True:
-        _LOGGER.error("Could not connect to AwesomeLight hub")
-        return
-
-    # Add devices
-    add_entities(AwesomeLight())
+    pass
 
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the lights from a config entry."""
-    pass
+    device = Device(base_url=config_entry.data[CONF_URL])
+    info = await device.get_info()
+    state = await device.get_state()
+    led_stripe = OhmLEDLight(device=device, info=info, state=state)
+    async_add_entities([led_stripe])
 
 
-class AwesomeLight(Light):
-    """Representation of an Awesome Light."""
+class OhmLEDLight(Light):
+    """Representation of an Ohm-Made LED stripe."""
 
-    def __init__(self):
-        """Initialize an AwesomeLight."""
-        self._name = "Some light"
-        self._state = None
-        self._brightness = None
+    def __init__(self, device, info, state):
+        """Initialize a LED stripe."""
+        self._device = device
+        self._info = info
+        self._state = state
+
+    @property
+    def unique_id(self):
+        """Return the unique ID of this Ohm-LED device."""
+        return self._info.get("name", "ohm-led")
+
+    @property
+    def device_id(self):
+        """Return the ID of this Ohm-LED device."""
+        return self.unique_id
 
     @property
     def name(self):
-        """Return the display name of this light."""
-        return self._name
+        """Return the name of this Ohm-LED device."""
+        return self.unique_id
 
     @property
     def brightness(self):
@@ -60,33 +67,48 @@ class AwesomeLight(Light):
         This method is optional. Removing it indicates to Home Assistant
         that brightness is not supported for this light.
         """
-        return self._brightness
+        return self._state["value"]
 
     @property
     def is_on(self):
         """Return true if light is on."""
-        return self._state
+        return self._state["mode"] != "off"
 
-    def turn_on(self, **kwargs):
-        """Instruct the light to turn on.
+    @property
+    def supported_features(self):
+        """Flag supported features."""
+        return [
+            SUPPORT_BRIGHTNESS,
+            SUPPORT_COLOR,
+        ]
 
-        You can skip the brightness part if your light does not support
-        brightness control.
-        """
-        self._light.brightness = kwargs.get(ATTR_BRIGHTNESS, 255)
-        self._light.turn_on()
+    @property
+    def device_info(self):
+        """Return the device info."""
+        return {
+            "identifiers": {(DOMAIN, self.device_id)},
+            "name": self.name,
+            "num_led": self._info.get("num-led", 0),
+            "host": self.device.base_url,
+        }
 
-    def turn_off(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
+        """Instruct the light to turn on."""
+        hsv = (None, None, None)
+
+        if ATTR_HS_COLOR in kwargs:
+            hsv[0] = int(kwargs[ATTR_HS_COLOR][0] / 360 * 255)
+            hsv[1] = int(kwargs[ATTR_HS_COLOR][1] / 100 * 255)
+
+        if ATTR_BRIGHTNESS in kwargs:
+            hsv[2] = int(kwargs[ATTR_BRIGHTNESS])
+
+        await self._device.on(hsv=hsv)
+
+    async def async_turn_off(self, **kwargs):
         """Instruct the light to turn off."""
-        pass
-        # self._light.turn_off()
+        await self._device.off()
 
-    def update(self):
-        """Fetch new state data for this light.
-
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        pass
-        # self._light.update()
-        # self._state = self._light.is_on()
-        # self._brightness = self._light.brightness
+    async def async_update(self):
+        """Fetch new state data for this light."""
+        self._state = await self._device.get_state()
