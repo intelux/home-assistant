@@ -93,6 +93,7 @@ class OhmLEDLight(Light):
             "num_led": self._info.get("num-led", 0),
             "host": self._device.base_url,
             "manufacturer": "Ohm-made",
+            "model": "Ohm-LED",
         }
 
     async def async_turn_on(self, **kwargs):
