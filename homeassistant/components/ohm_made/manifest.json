@@ -3,16 +3,10 @@
   "name": "Ohm-made",
   "config_flow": true,
   "documentation": "https://www.home-assistant.io/integrations/ohm_made",
-  "requirements": [
-    "ohm-made>=0.0.3"
-  ],
+  "requirements": ["ohm-made>=0.0.6"],
   "ssdp": [],
-  "zeroconf": [
-    "_ohm-led._tcp.local."
-  ],
+  "zeroconf": ["_ohm-led._tcp.local."],
   "homekit": {},
   "dependencies": [],
-  "codeowners": [
-    "@ereOn"
-  ]
+  "codeowners": ["@ereOn"]
 }

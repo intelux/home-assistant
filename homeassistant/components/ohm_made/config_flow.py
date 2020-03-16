@@ -1,7 +1,7 @@
 """Config flow for Ohm-made integration."""
 import logging
 
-from ohm_led.led_stripe import LEDStripe
+from ohm_led import Device
 import voluptuous as vol
 
 from homeassistant import config_entries, core, exceptions
@@ -19,15 +19,17 @@ async def validate_input(hass: core.HomeAssistant, data):
     Data has the keys from DATA_SCHEMA with values provided by the user.
     """
     url = data["url"]
-    led_stripe = LEDStripe(url)
+    device = Device(base_url=url)
 
     try:
-        await led_stripe.get_state()
+        info = await device.get_info()
+        # TODO: Fetch the type of the device once it is known.
+        name = info["name"]
     except Exception:  # pylint: disable=broad-except
         raise CannotConnect
 
     # Return info that you want to store in the config entry.
-    return {"title": f"Ohm-made device at {url}"}
+    return {"title": f"{name}"}
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):

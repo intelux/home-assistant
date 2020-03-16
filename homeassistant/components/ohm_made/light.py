@@ -85,6 +85,24 @@ class OhmLEDLight(Light):
         return SUPPORT_BRIGHTNESS | SUPPORT_COLOR | SUPPORT_EFFECT
 
     @property
+    def effect(self):
+        """Return the current effect."""
+        mode = self._state.get("mode", None)
+
+        if mode == "rainbow":
+            return EFFECT_COLORLOOP
+
+        return None
+
+    @property
+    def effect_list(self):
+        """Return the list of supported effects."""
+        return [
+            EFFECT_COLORLOOP,
+            EFFECT_RANDOM,
+        ]
+
+    @property
     def device_info(self):
         """Return the device info."""
         return {
