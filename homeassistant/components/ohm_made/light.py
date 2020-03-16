@@ -77,10 +77,7 @@ class OhmLEDLight(Light):
     @property
     def supported_features(self):
         """Flag supported features."""
-        return [
-            SUPPORT_BRIGHTNESS,
-            SUPPORT_COLOR,
-        ]
+        return SUPPORT_BRIGHTNESS | SUPPORT_COLOR
 
     @property
     def device_info(self):
@@ -89,7 +86,7 @@ class OhmLEDLight(Light):
             "identifiers": {(DOMAIN, self.device_id)},
             "name": self.name,
             "num_led": self._info.get("num-led", 0),
-            "host": self.device.base_url,
+            "host": self._device.base_url,
         }
 
     async def async_turn_on(self, **kwargs):
