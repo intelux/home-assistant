@@ -1,15 +1,20 @@
 """Platform for light integration."""
 import logging
+import random
 
 from ohm_led import Device
 import voluptuous as vol
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
+    ATTR_EFFECT,
     ATTR_HS_COLOR,
+    EFFECT_COLORLOOP,
+    EFFECT_RANDOM,
     PLATFORM_SCHEMA,
     SUPPORT_BRIGHTNESS,
     SUPPORT_COLOR,
+    SUPPORT_EFFECT,
     Light,
 )
 from homeassistant.const import CONF_URL
@@ -77,7 +82,7 @@ class OhmLEDLight(Light):
     @property
     def supported_features(self):
         """Flag supported features."""
-        return SUPPORT_BRIGHTNESS | SUPPORT_COLOR
+        return SUPPORT_BRIGHTNESS | SUPPORT_COLOR | SUPPORT_EFFECT
 
     @property
     def device_info(self):
@@ -87,11 +92,13 @@ class OhmLEDLight(Light):
             "name": self.name,
             "num_led": self._info.get("num-led", 0),
             "host": self._device.base_url,
+            "manufacturer": "Ohm-made",
         }
 
     async def async_turn_on(self, **kwargs):
         """Instruct the light to turn on."""
-        hsv = (None, None, None)
+        command = self._device.on
+        hsv = [None, None, None]
 
         if ATTR_HS_COLOR in kwargs:
             hsv[0] = int(kwargs[ATTR_HS_COLOR][0] / 360 * 255)
@@ -100,7 +107,19 @@ class OhmLEDLight(Light):
         if ATTR_BRIGHTNESS in kwargs:
             hsv[2] = int(kwargs[ATTR_BRIGHTNESS])
 
-        await self._device.on(hsv=hsv)
+            if hsv[2] == 0:
+                command = self._device.off
+
+        if ATTR_EFFECT in kwargs:
+            effect = kwargs[ATTR_EFFECT]
+
+            if effect == EFFECT_COLORLOOP:
+                command = self._device.rainbow
+            elif effect == EFFECT_RANDOM:
+                hsv[0] = random.randrange(0, 255)
+                hsv[1] = random.randrange(150, 255)
+
+        await command(hsv=hsv)
 
     async def async_turn_off(self, **kwargs):
         """Instruct the light to turn off."""
