@@ -22,6 +22,9 @@ import homeassistant.helpers.config_validation as cv
 
 from .const import DOMAIN
 
+EFFECT_RAINBOW = "rainbow"
+EFFECT_PULSE = "pulse"
+
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({vol.Required(CONF_URL): cv.string})
@@ -89,8 +92,12 @@ class OhmLEDLight(Light):
         """Return the current effect."""
         mode = self._state.get("mode", None)
 
-        if mode == "rainbow":
+        if mode == "colorloop":
             return EFFECT_COLORLOOP
+        elif mode == "rainbow":
+            return EFFECT_RAINBOW
+        elif mode == "pulse":
+            return EFFECT_PULSE
 
         return None
 
@@ -133,7 +140,11 @@ class OhmLEDLight(Light):
             effect = kwargs[ATTR_EFFECT]
 
             if effect == EFFECT_COLORLOOP:
+                command = self._device.colorloop
+            elif effect == EFFECT_RAINBOW:
                 command = self._device.rainbow
+            elif effect == EFFECT_PULSE:
+                command = self._device.pulse
             elif effect == EFFECT_RANDOM:
                 hsv[0] = random.randrange(0, 255)
                 hsv[1] = random.randrange(150, 255)
