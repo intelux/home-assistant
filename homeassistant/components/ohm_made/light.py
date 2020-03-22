@@ -107,6 +107,8 @@ class OhmLEDLight(Light):
         return [
             EFFECT_COLORLOOP,
             EFFECT_RANDOM,
+            EFFECT_RAINBOW,
+            EFFECT_PULSE,
         ]
 
     @property
