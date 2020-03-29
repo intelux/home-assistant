@@ -78,6 +78,14 @@ class OhmLEDLight(Light):
         return self._state["value"]
 
     @property
+    def hs_color(self):
+        """Return the hs color value."""
+        hue = (self._state["hue"] / 255) * 360
+        saturation = (self._state["saturation"] / 255) * 100
+
+        return (hue, saturation)
+
+    @property
     def is_on(self):
         """Return true if light is on."""
         return self._state["mode"] != "off"
